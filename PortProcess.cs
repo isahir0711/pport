@@ -4,11 +4,6 @@ namespace Pport
 {
     public class ProcPort
     {
-
-        //TODO: 1 inode doesnt mean just 1 process (return a list of ProcessInfo)
-        //TODO: allow check just for one port or process
-        //TODO: Check for tcp6/ipv6 too
-        //TODO: we could create a map/dictionary traverse the while /proc/*/fd looking for socket:[x] and then query it
         private static ProcessInfo? GetProcessByInode(int inode)
         {
             var dirs = Directory.EnumerateDirectories("/proc").Where(x => int.TryParse(Path.GetFileName(x), out int foo));

@@ -2,8 +2,6 @@
 
 PPORT is a lightweight CLI tool for Linux that lists **currently listening network ports** and the **processes that own them**, including process names and command-line arguments.
 
----
-
 ## Features
 
 - List listening ports
@@ -12,13 +10,9 @@ PPORT is a lightweight CLI tool for Linux that lists **currently listening netwo
   - Process name
   - Command line
 
----
-
 ## Supported Platforms
 
 - Linux (requires `/proc` filesystem)
-
----
 
 ## Usage
 

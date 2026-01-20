@@ -47,8 +47,8 @@ pport
 - `--csv`, `--json`  
   Export results in machine-readable formats
 
-- `--kill 80`  
-  Try to kill the process for the specified port
+- `--kill processname`  
+  Try to kill the process
 
 ### Networking Support
 

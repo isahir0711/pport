@@ -53,7 +53,7 @@ namespace pport
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("┌─────────┬─────────┬──────────────────────────┐");
             Console.WriteLine("│ PORT    │ PID     │ PROCESS NAME             │");
-            Console.WriteLine("├─────────┼─────────┼──────────────────────────┼");
+            Console.WriteLine("├─────────┼─────────┼──────────────────────────┤");
             Console.ResetColor();
 
             foreach (var proc in procInfoList)

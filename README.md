@@ -1,6 +1,6 @@
 # PPORT
 
-PPORT is a lightweight CLI tool for Linux that lists **currently listening network ports** and the **processes that own them**, including process names and command-line arguments.
+PPORT is a lightweight CLI tool for Linux that lists **currently listening network ports** and the **processes that own them**, so you can close them.
 
 ## Features
 
@@ -9,6 +9,7 @@ PPORT is a lightweight CLI tool for Linux that lists **currently listening netwo
   - PID
   - Process name
   - Command line
+- Kill a process
 
 ## Supported Platforms
 
@@ -35,22 +36,22 @@ pport
 
 ### CLI Arguments
 
-- `--watch 1s`  
-  Continuously refresh port and process information at a specified interval
+- [x] `--watch 1s`  
+       Continuously refresh port and process information at a specified interval
 
-- `--port 8080`  
-  Filter results by a specific port
+- [ ] `--port 8080`  
+       Filter results by a specific port
 
-- `--state <state>`  
-  Include ports in states other than `LISTEN` (e.g. `ESTABLISHED`)
+- [ ] `--state <state>`  
+       Include ports in states other than `LISTEN` (e.g. `ESTABLISHED`)
 
-- `--csv`, `--json`  
-  Export results in machine-readable formats
+- [x] `--csv`, `--json`  
+       Export results in machine-readable formats
 
-- `--kill processname`  
-  Try to kill the process
+- [x] `--kill processname`  
+       Try to kill the process
 
 ### Networking Support
 
-- IPv6 support
-- UDP port listing
+- [ ] IPv6 support
+- [ ] UDP port listing

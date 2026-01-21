@@ -3,48 +3,7 @@ namespace pport
 {
     public class ProcPort
     {
-        private static List<ProcessInfo> GetProcessByInode(int inode)
-        {
-            var dirs = Directory.EnumerateDirectories("/proc").Where(x => int.TryParse(Path.GetFileName(x), out int foo));
-
-            List<ProcessInfo> procList = [];
-            foreach (var procDir in dirs)
-            {
-                // Console.WriteLine(dir);
-                var fdPath = Path.Combine(procDir, "fd");
-                if (!Directory.Exists(fdPath))
-                    continue;
-                try
-                {
-                    var fdDirs = Directory.EnumerateFiles(Path.Combine(procDir, "fd"));
-                    foreach (var fd in fdDirs)
-                    {
-                        var info = new FileInfo(fd).LinkTarget;
-                        if (info is null)
-                        {
-                            continue;
-                        }
-                        if (info == $"socket:[{inode}]")
-                        {
-                            string trimmedpid = fd.Split('/')[2];
-                            // Console.WriteLine($"DEBUG: PID: {pid}");
-                            int pid = Convert.ToInt32(trimmedpid);
-                            string ProcessName = File.ReadAllText(Path.Combine(procDir, "comm")).Replace('\0', ' ').TrimEnd();
-                            string commandLine = File.ReadAllText(Path.Combine(procDir, "cmdline")).Replace('\0', ' ').TrimEnd();
-                            var procInfo = new ProcessInfo(ProcessName, commandLine, pid);
-                            procList.Add(procInfo);
-                        }
-                    }
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    continue;
-                }
-
-            }
-            return procList;
-
-        }
+        private readonly static Dictionary<int, List<InodeInfo>> cache = [];
 
         public static void DisplayPortProcesses()
         {
@@ -72,6 +31,7 @@ namespace pport
 
         public static List<List<ProcessInfo>> GetPortsProcesses()
         {
+            CreateCache();
             const int localAddressColumn = 1;
             const int inodeColumn = 9;
             const int stateColumn = 3;
@@ -91,27 +51,110 @@ namespace pport
                 string localAddress = parts[localAddressColumn];
                 string hexPort = localAddress.Split(':')[1];
                 int port = Convert.ToInt32(hexPort, 16);
-                string inode = parts[inodeColumn];
+                string inodestring = parts[inodeColumn];
+                int inode = Convert.ToInt32(inodestring);
 
-                var temptList = GetProcessByInode(Convert.ToInt32(inode));
-                temptList.ForEach(x => x.Port = port);
-                procInfoList.Add(temptList);
+                if (!cache.TryGetValue(inode, out List<InodeInfo>? hit) || hit == null)
+                {
+                    continue;
+                }
+
+                List<ProcessInfo> tempList = [];
+                foreach (var item in hit)
+                {
+                    tempList.Add(new ProcessInfo(item.ProcessName, item.CommandLine, item.PID, port));
+                }
+
+                procInfoList.Add(tempList);
             }
 
             return procInfoList;
         }
+
+        public static void CreateCache()
+        {
+            var dirs = Directory.EnumerateDirectories("/proc").Where(x => int.TryParse(Path.GetFileName(x), out int foo));
+
+            foreach (var procDir in dirs)
+            {
+                var fdDir = Path.Combine(procDir, "fd");
+
+                if (!Directory.Exists(fdDir))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var fdDirs = Directory.EnumerateFiles(fdDir);
+
+                    foreach (var fd in fdDirs)
+                    {
+                        var info = new FileInfo(fd).LinkTarget;
+                        if (info is null)
+                        {
+                            continue;
+                        }
+                        if (info[0..6] == "socket")
+                        {
+                            string pidstring = fd.Split('/')[2];
+                            string inodestring = info[8..^1];
+                            int pid = Convert.ToInt32(pidstring);
+                            int inode = Convert.ToInt32(inodestring);
+                            string processName = File.ReadAllText(Path.Combine(procDir, "comm")).Replace('\0', ' ').TrimEnd();
+                            string commandLine = File.ReadAllText(Path.Combine(procDir, "cmdline")).Replace('\0', ' ').TrimEnd();
+
+                            if (!cache.ContainsKey(inode))
+                            {
+                                cache.Add(inode, []);
+                            }
+
+                            cache[inode].Add(new InodeInfo(processName, commandLine, pid));
+                        }
+                    }
+
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+            }
+        }
+
+
     }
+
+    public class InodeInfo
+    {
+        public string ProcessName { get; }
+        public string CommandLine { get; }
+        public int PID { get; }
+
+        public InodeInfo(string processName, string commandLine, int pid)
+        {
+            ProcessName = processName;
+            CommandLine = commandLine;
+            PID = pid;
+        }
+
+        public override string ToString()
+        {
+            return $"{ProcessName}";
+        }
+    }
+
     public class ProcessInfo
     {
-        public int Port { get; set; }
+        public int Port { get; }
         public string ProcessName { get; }
         public string CommandLineName { get; }
         public int PID { get; }
-        public ProcessInfo(string processName, string commandLine, int pid)
+        public ProcessInfo(string processName, string commandLine, int pid, int port)
         {
             ProcessName = processName;
             CommandLineName = commandLine;
             PID = pid;
+            Port = port;
         }
 
     }

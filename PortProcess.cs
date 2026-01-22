@@ -1,4 +1,3 @@
-
 namespace pport
 {
     public class ProcPort
@@ -7,12 +6,11 @@ namespace pport
 
         public static void DisplayPortProcesses()
         {
-            List<List<ProcessInfo>> procInfoList = [];
+            List<ProcessInfo> procInfoList = [];
 
-            var ipv4 = GetPortsProcesses();
-            var ipv6 = GetIpv6PortsProcesses();
-            procInfoList.AddRange(ipv4);
-            procInfoList.AddRange(ipv6);
+            procInfoList.AddRange(GetPortsProcesses("/proc/net/tcp", Protocol.IPv4));
+            procInfoList.AddRange(GetPortsProcesses("/proc/net/tcp6", Protocol.IPv6));
+            procInfoList = [.. procInfoList.OrderBy(x => x.Port)];
 
             if (procInfoList.Count < 1)
             {
@@ -21,35 +19,34 @@ namespace pport
             }
 
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("┌─────────┬─────────┬──────────────────────────┐");
-            Console.WriteLine("│ PORT    │ PID     │ PROCESS NAME             │");
-            Console.WriteLine("├─────────┼─────────┼──────────────────────────┤");
+            Console.WriteLine("┌─────────┬─────────┬────────────┬──────────────────────────┐");
+            Console.WriteLine("│ PORT    │ PID     │ PROTOCOL   │ PROCESS NAME             │");
+            Console.WriteLine("├─────────┼─────────┼────────────┼──────────────────────────┤");
             Console.ResetColor();
 
-            foreach (var proc in procInfoList)
+            foreach (var info in procInfoList)
             {
-                foreach (var info in proc)
-                {
-                    Console.WriteLine("│ {0,-7} │ {1,-7} │ {2,-24} │", info.Port, info.PID, info.ProcessName);
-                }
+                Console.Write("│ {0,-7} │ {1,-7} │ ", info.Port, info.PID);
+                Console.ForegroundColor = info.Protocol == Protocol.IPv4 ? ConsoleColor.Green : ConsoleColor.DarkBlue;
+                Console.Write("{0,-10}", info.Protocol);
+                Console.ResetColor();
+                Console.WriteLine(" │ {0,-24} │", info.ProcessName);
             }
 
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("└─────────┴─────────┴──────────────────────────┘");
+            Console.WriteLine("└─────────┴─────────┴────────────┴──────────────────────────┘");
             Console.ResetColor();
         }
-
-
-        public static List<List<ProcessInfo>> GetPortsProcesses()
+        public static List<ProcessInfo> GetPortsProcesses(string filePath, Protocol protocol)
         {
             CreateCache();
             const int localAddressColumn = 1;
             const int inodeColumn = 9;
             const int stateColumn = 3;
 
-            var dir = "/proc/net/tcp";
+            var dir = filePath;
             var lines = File.ReadAllLines(dir);
-            List<List<ProcessInfo>> procInfoList = [];
+            List<ProcessInfo> result = [];
 
             for (int i = 1; i < lines.Length; i++)
             {
@@ -70,58 +67,13 @@ namespace pport
                     continue;
                 }
 
-                List<ProcessInfo> tempList = [];
                 foreach (var item in hit)
                 {
-                    tempList.Add(new ProcessInfo(item.ProcessName, item.CommandLine, item.PID, port));
+                    result.Add(new ProcessInfo(item.ProcessName, item.CommandLine, item.PID, port, protocol));
                 }
-
-                procInfoList.Add(tempList);
             }
+            return result;
 
-            return procInfoList;
-        }
-
-        public static List<List<ProcessInfo>> GetIpv6PortsProcesses()
-        {
-            CreateCache();
-            const int localAddressColumn = 1;
-            const int inodeColumn = 9;
-            const int stateColumn = 3;
-
-            var dir = "/proc/net/tcp6";
-            var lines = File.ReadAllLines(dir);
-            List<List<ProcessInfo>> procInfoList = [];
-
-            for (int i = 1; i < lines.Length; i++)
-            {
-                var parts = lines[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                string state = parts[stateColumn];
-                if (state != "0A")
-                {
-                    continue;
-                }
-                string localAddress = parts[localAddressColumn];
-                string hexPort = localAddress.Split(':')[1];
-                int port = Convert.ToInt32(hexPort, 16);
-                string inodestring = parts[inodeColumn];
-                int inode = Convert.ToInt32(inodestring);
-
-                if (!cache.TryGetValue(inode, out List<InodeInfo>? hit) || hit == null)
-                {
-                    continue;
-                }
-
-                List<ProcessInfo> tempList = [];
-                foreach (var item in hit)
-                {
-                    tempList.Add(new ProcessInfo(item.ProcessName, item.CommandLine, item.PID, port));
-                }
-
-                procInfoList.Add(tempList);
-            }
-
-            return procInfoList;
         }
 
         public static void CreateCache()
@@ -161,8 +113,15 @@ namespace pport
                             {
                                 cache.Add(inode, []);
                             }
+                            var inodeinfo = new InodeInfo(processName, commandLine, pid);
 
-                            cache[inode].Add(new InodeInfo(processName, commandLine, pid));
+                            if (cache[inode].Where(x => x.PID == inodeinfo.PID).ToList().Count > 0)
+                            {
+                                continue;
+                            }
+
+                            cache[inode].Add(inodeinfo);
+
                         }
                     }
 
@@ -201,15 +160,25 @@ namespace pport
         public int Port { get; }
         public string ProcessName { get; }
         public string CommandLineName { get; }
+
+        public Protocol Protocol { get; }
         public int PID { get; }
-        public ProcessInfo(string processName, string commandLine, int pid, int port)
+
+        public ProcessInfo(string processName, string commandLine, int pid, int port, Protocol protocol)
         {
             ProcessName = processName;
             CommandLineName = commandLine;
             PID = pid;
             Port = port;
+            Protocol = protocol;
         }
 
+    }
+
+    public enum Protocol
+    {
+        IPv6,
+        IPv4,
     }
 
 }

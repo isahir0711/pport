@@ -29,7 +29,9 @@ namespace pport
 
         public static void CreateCSV()
         {
-            var procInfoList = ProcPort.GetPortsProcesses();
+            List<ProcessInfo> procInfoList = [];
+            procInfoList.AddRange(ProcPort.GetPortsProcesses("/proc/net/tcp", Protocol.IPv4));
+            procInfoList.AddRange(ProcPort.GetPortsProcesses("/proc/net/tcp6", Protocol.IPv6));
 
             string outputDir = "output";
             Directory.CreateDirectory(outputDir);
@@ -39,20 +41,17 @@ namespace pport
             {
                 using (var writer = new StreamWriter(csvFilePath))
                 {
-                    writer.WriteLine("PORT,PROCESS_NAME,COMMAND_LINE");
+                    writer.WriteLine("PORT,PROCESS_NAME,COMMAND_LINE,PROTOCOL");
 
-                    foreach (var procList in procInfoList)
+                    foreach (var info in procInfoList)
                     {
-                        foreach (var info in procList)
+                        string escapedCommandLine = info.CommandLineName.Replace("\"", "\"\"");
+                        if (escapedCommandLine.Contains(',') || escapedCommandLine.Contains('"') || escapedCommandLine.Contains('\n'))
                         {
-                            string escapedCommandLine = info.CommandLineName.Replace("\"", "\"\"");
-                            if (escapedCommandLine.Contains(",") || escapedCommandLine.Contains("\"") || escapedCommandLine.Contains("\n"))
-                            {
-                                escapedCommandLine = $"\"{escapedCommandLine}\"";
-                            }
-
-                            writer.WriteLine($"{info.Port},{info.ProcessName},{escapedCommandLine}");
+                            escapedCommandLine = $"\"{escapedCommandLine}\"";
                         }
+
+                        writer.WriteLine($"{info.Port},{info.ProcessName},{escapedCommandLine},{info.Protocol}");
                     }
                 }
 
@@ -64,9 +63,10 @@ namespace pport
             }
         }
 
+        private static readonly JsonSerializerOptions options = new() { WriteIndented = true };
         public static void CreateJSON()
         {
-            var procInfoList = ProcPort.GetPortsProcesses();
+            var procInfoList = ProcPort.GetPortsProcesses("/proc/net/tcp", Protocol.IPv4);
 
             string outputDir = "output";
             Directory.CreateDirectory(outputDir);
@@ -74,24 +74,7 @@ namespace pport
 
             try
             {
-                var flatList = new List<object>();
-
-                foreach (var procList in procInfoList)
-                {
-                    foreach (var info in procList)
-                    {
-                        flatList.Add(new
-                        {
-                            Port = info.Port,
-                            PID = info.PID,
-                            ProcessName = info.ProcessName,
-                            CommandLine = info.CommandLineName
-                        });
-                    }
-                }
-
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                string jsonContent = JsonSerializer.Serialize(flatList, options);
+                string jsonContent = JsonSerializer.Serialize(procInfoList, options);
 
                 File.WriteAllText(jsonFilePath, jsonContent);
 

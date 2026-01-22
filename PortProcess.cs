@@ -7,7 +7,18 @@ namespace pport
 
         public static void DisplayPortProcesses()
         {
-            var procInfoList = GetPortsProcesses();
+            List<List<ProcessInfo>> procInfoList = [];
+
+            var ipv4 = GetPortsProcesses();
+            var ipv6 = GetIpv6PortsProcesses();
+            procInfoList.AddRange(ipv4);
+            procInfoList.AddRange(ipv6);
+
+            if (procInfoList.Count < 1)
+            {
+                Console.WriteLine("No ports found");
+                return;
+            }
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("┌─────────┬─────────┬──────────────────────────┐");
@@ -37,6 +48,48 @@ namespace pport
             const int stateColumn = 3;
 
             var dir = "/proc/net/tcp";
+            var lines = File.ReadAllLines(dir);
+            List<List<ProcessInfo>> procInfoList = [];
+
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var parts = lines[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                string state = parts[stateColumn];
+                if (state != "0A")
+                {
+                    continue;
+                }
+                string localAddress = parts[localAddressColumn];
+                string hexPort = localAddress.Split(':')[1];
+                int port = Convert.ToInt32(hexPort, 16);
+                string inodestring = parts[inodeColumn];
+                int inode = Convert.ToInt32(inodestring);
+
+                if (!cache.TryGetValue(inode, out List<InodeInfo>? hit) || hit == null)
+                {
+                    continue;
+                }
+
+                List<ProcessInfo> tempList = [];
+                foreach (var item in hit)
+                {
+                    tempList.Add(new ProcessInfo(item.ProcessName, item.CommandLine, item.PID, port));
+                }
+
+                procInfoList.Add(tempList);
+            }
+
+            return procInfoList;
+        }
+
+        public static List<List<ProcessInfo>> GetIpv6PortsProcesses()
+        {
+            CreateCache();
+            const int localAddressColumn = 1;
+            const int inodeColumn = 9;
+            const int stateColumn = 3;
+
+            var dir = "/proc/net/tcp6";
             var lines = File.ReadAllLines(dir);
             List<List<ProcessInfo>> procInfoList = [];
 

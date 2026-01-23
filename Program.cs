@@ -4,7 +4,7 @@ using pport;
 
 if (args.Length == 0)
 {
-    ProcPort.DisplayPortProcesses();
+    ProcPort.DisplayPortProcesses(PortState.Listen);
     return;
 }
 
@@ -33,7 +33,6 @@ if (args.Length > 2)
 
 //try to parse the args
 //--port portnumbertoquery
-//--state statetoquery
 
 string option = args[0];
 string param = args[1];
@@ -49,9 +48,19 @@ switch (option)
         while (true)
         {
             Console.Clear();
-            ProcPort.DisplayPortProcesses();
+            ProcPort.DisplayPortProcesses(PortState.Listen);
             Thread.Sleep(timeinseconds * 1000);
         }
+
+    case "--state":
+        var res = Enum.TryParse(param, ignoreCase: true, out PortState state) && Enum.IsDefined(state);
+        if (!res)
+        {
+            Console.WriteLine("Bad state");
+            return;
+        }
+        ProcPort.DisplayPortProcesses(state);
+        break;
 
     case "--kill":
         if (int.TryParse(param, out int pid))

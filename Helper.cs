@@ -30,8 +30,9 @@ namespace pport
         public static void CreateCSV()
         {
             List<ProcessInfo> procInfoList = [];
-            procInfoList.AddRange(ProcPort.GetPortsProcesses("/proc/net/tcp", Protocol.IPv4));
-            procInfoList.AddRange(ProcPort.GetPortsProcesses("/proc/net/tcp6", Protocol.IPv6));
+            PortState state = PortState.Listen;
+            procInfoList.AddRange(ProcPort.GetPortsProcesses("/proc/net/tcp", Protocol.IPv4, state));
+            procInfoList.AddRange(ProcPort.GetPortsProcesses("/proc/net/tcp6", Protocol.IPv6, state));
 
             string outputDir = "output";
             Directory.CreateDirectory(outputDir);
@@ -66,7 +67,8 @@ namespace pport
         private static readonly JsonSerializerOptions options = new() { WriteIndented = true };
         public static void CreateJSON()
         {
-            var procInfoList = ProcPort.GetPortsProcesses("/proc/net/tcp", Protocol.IPv4);
+            PortState state = PortState.Listen;
+            var procInfoList = ProcPort.GetPortsProcesses("/proc/net/tcp", Protocol.IPv4, state);
 
             string outputDir = "output";
             Directory.CreateDirectory(outputDir);

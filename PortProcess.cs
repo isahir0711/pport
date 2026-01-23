@@ -4,12 +4,12 @@ namespace pport
     {
         private readonly static Dictionary<int, List<InodeInfo>> cache = [];
 
-        public static void DisplayPortProcesses()
+        public static void DisplayPortProcesses(PortState state)
         {
             List<ProcessInfo> procInfoList = [];
 
-            procInfoList.AddRange(GetPortsProcesses("/proc/net/tcp", Protocol.IPv4));
-            procInfoList.AddRange(GetPortsProcesses("/proc/net/tcp6", Protocol.IPv6));
+            procInfoList.AddRange(GetPortsProcesses("/proc/net/tcp", Protocol.IPv4, state));
+            procInfoList.AddRange(GetPortsProcesses("/proc/net/tcp6", Protocol.IPv6, state));
             procInfoList = [.. procInfoList.OrderBy(x => x.Port)];
 
             if (procInfoList.Count < 1)
@@ -37,7 +37,7 @@ namespace pport
             Console.WriteLine("└─────────┴─────────┴────────────┴──────────────────────────┘");
             Console.ResetColor();
         }
-        public static List<ProcessInfo> GetPortsProcesses(string filePath, Protocol protocol)
+        public static List<ProcessInfo> GetPortsProcesses(string filePath, Protocol protocol, PortState state)
         {
             CreateCache();
             const int localAddressColumn = 1;
@@ -51,8 +51,12 @@ namespace pport
             for (int i = 1; i < lines.Length; i++)
             {
                 var parts = lines[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                string state = parts[stateColumn];
-                if (state != "0A")
+                string statestring = parts[stateColumn];
+                int sHex = Convert.ToInt32(statestring, 16);
+
+                var portState = (PortState)sHex;
+
+                if (!portState.Equals(state))
                 {
                     continue;
                 }
@@ -179,6 +183,13 @@ namespace pport
     {
         IPv6,
         IPv4,
+    }
+
+    public enum PortState
+    {
+        Established = 0x01,
+        Close = 0x07,
+        Listen = 0x0A,
     }
 
 }

@@ -9,6 +9,7 @@ PPORT is a lightweight CLI tool for Linux that lists **currently listening netwo
   - PID
   - Process name
   - Command line
+  - Protocol Version
 - Kill a process
 
 ## Supported Platforms
@@ -42,7 +43,7 @@ pport
 - [ ] `--port 8080`  
        Filter results by a specific port
 
-- [ ] `--state <state>`  
+- [x] `--state <state>`  
        Include ports in states other than `LISTEN` (e.g. `ESTABLISHED`)
 
 - [x] `--csv`, `--json`  
@@ -53,5 +54,5 @@ pport
 
 ### Networking Support
 
-- [ ] IPv6 support
+- [x] IPv6 support
 - [ ] UDP port listing

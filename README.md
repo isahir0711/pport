@@ -1,8 +1,8 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/isahir0711/pport/raw/main/assets/images/pport-logo-white.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/isahir0711/pport/raw/main/assets/images/pport-logo-black.png">
-    <img alt="logo" src="https://github.com/isahir0711/pport/raw/main/assets/images/pport-logo-black.png" width="50%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/isahir0711/pport/raw/master/assets/images/pport-logo-white.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/isahir0711/pport/raw/master/assets/images/pport-logo-black.png">
+    <img alt="logo" src="https://github.com/isahir0711/pport/raw/master/assets/images/pport-logo-black.png" width="50%">
   </picture>
 </div>
 

@@ -9,7 +9,7 @@
 <h3 align="center">
   CLI Tool for port management
   <br/>
-  Listen current listen ports and kill processes
+  Show listening ports and kill the owning processes
 </h3>
 
 ## Instalation (WIP)

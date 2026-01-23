@@ -6,26 +6,39 @@
   </picture>
 </div>
 
-PPORT is a lightweight CLI tool for Linux that lists **currently listening network ports** and the **processes that own them**, so you can close them.
+<h3 align="center">
+  CLI Tool for port management
+  <br/>
+  Listen current listen ports and kill processes
+</h3>
 
-## Features
+## Instalation (WIP)
 
-- List listening ports
-- Resolve ports to:
-  - PID
-  - Process name
-  - Command line
-  - Protocol Version
-- Kill a process
+### Download Release (Recommended)
 
-## Supported Platforms
-
-- Linux (requires `/proc` filesystem)
+Download the latest release from [GitHub Releases](https://github.com/isahir0711/pport/releases):
 
 ## Usage
 
+### Basic Usage
+
+List all listening ports:
+
 ```bash
+# Prints currently LISTEN ports:
 pport
+# Kill process running on a specific port:
+pport --kill 3000
+# Auto-refresh every second:
+pport --watch 1s
+# Include connections in states other than LISTEN (e.g., ESTABLISHED):
+pport --state ESTABLISHED
+# Show only a specific port:
+pport --port 8080
+# Export to JSON:
+pport --json
+# Export to CSV:
+pport --csv
 ```
 
 # Example output
@@ -38,6 +51,10 @@ pport
 │ 3000    │ node                     │ /usr/bin/server.js       │
 └─────────┴──────────────────────────┴──────────────────────────┘
 ```
+
+## Supported Platforms
+
+- Linux (requires `/proc` filesystem)
 
 ## Roadmap
 
@@ -58,7 +75,6 @@ pport
 - [x] `--kill processname`  
        Try to kill the process
 
-### Networking Support
-
 - [x] IPv6 support
+
 - [ ] UDP port listing

@@ -65,7 +65,7 @@ switch (option)
     case "--kill":
         if (int.TryParse(param, out int pid))
         {
-            Process process = Process.GetProcessById(Convert.ToInt32(param));
+            Process process = Process.GetProcessById(pid);
             if (process is null)
             {
                 Console.WriteLine("not found");

@@ -63,7 +63,7 @@ pport --csv
 - [x] `--watch 1s`  
        Continuously refresh port and process information at a specified interval
 
-- [ ] `--port 8080`  
+- [x] `--port 8080`  
        Filter results by a specific port
 
 - [x] `--state <state>`  
@@ -76,5 +76,3 @@ pport --csv
        Try to kill the process
 
 - [x] IPv6 support
-
-- [ ] UDP port listing

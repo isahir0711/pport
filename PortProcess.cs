@@ -18,25 +18,24 @@ namespace pport
                 return;
             }
 
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("┌─────────┬─────────┬────────────┬──────────────────────────┐");
-            Console.WriteLine("│ PORT    │ PID     │ PROTOCOL   │ PROCESS NAME             │");
-            Console.WriteLine("├─────────┼─────────┼────────────┼──────────────────────────┤");
-            Console.ResetColor();
-
-            foreach (var info in procInfoList)
-            {
-                Console.Write("│ {0,-7} │ {1,-7} │ ", info.Port, info.PID);
-                Console.ForegroundColor = info.Protocol == Protocol.IPv4 ? ConsoleColor.Green : ConsoleColor.DarkBlue;
-                Console.Write("{0,-10}", info.Protocol);
-                Console.ResetColor();
-                Console.WriteLine(" │ {0,-24} │", info.ProcessName);
-            }
-
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("└─────────┴─────────┴────────────┴──────────────────────────┘");
-            Console.ResetColor();
+            Helper.PrintTable(procInfoList);
         }
+
+        public static void DisplayPort(int portNumber)
+        {
+            List<ProcessInfo> procInfoList = [];
+
+            procInfoList.AddRange(GetPort("/proc/net/tcp", portNumber));
+            procInfoList = [.. procInfoList.OrderBy(x => x.Port)];
+
+            if (procInfoList.Count < 1)
+            {
+                Console.WriteLine("No port found");
+                return;
+            }
+            Helper.PrintTable(procInfoList);
+        }
+
         public static List<ProcessInfo> GetPortsProcesses(string filePath, Protocol protocol, PortState state)
         {
             CreateCache();
@@ -63,6 +62,55 @@ namespace pport
                 string localAddress = parts[localAddressColumn];
                 string hexPort = localAddress.Split(':')[1];
                 int port = Convert.ToInt32(hexPort, 16);
+                string inodestring = parts[inodeColumn];
+                int inode = Convert.ToInt32(inodestring);
+
+                if (!cache.TryGetValue(inode, out List<InodeInfo>? hit) || hit == null)
+                {
+                    continue;
+                }
+
+                foreach (var item in hit)
+                {
+                    result.Add(new ProcessInfo(item.ProcessName, item.CommandLine, item.PID, port, protocol));
+                }
+            }
+            return result;
+
+        }
+
+        public static List<ProcessInfo> GetPort(string filePath, int portNumber, Protocol protocol = Protocol.IPv4, PortState state = PortState.Listen)
+        {
+            CreateCache();
+            const int localAddressColumn = 1;
+            const int inodeColumn = 9;
+            const int stateColumn = 3;
+
+            var dir = filePath;
+            var lines = File.ReadAllLines(dir);
+            List<ProcessInfo> result = [];
+
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var parts = lines[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                string statestring = parts[stateColumn];
+                int sHex = Convert.ToInt32(statestring, 16);
+
+                var portState = (PortState)sHex;
+
+                if (!portState.Equals(state))
+                {
+                    continue;
+                }
+                string localAddress = parts[localAddressColumn];
+                string hexPort = localAddress.Split(':')[1];
+                int port = Convert.ToInt32(hexPort, 16);
+
+                if (port != portNumber)
+                {
+                    continue;
+                }
+
                 string inodestring = parts[inodeColumn];
                 int inode = Convert.ToInt32(inodestring);
 

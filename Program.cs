@@ -102,6 +102,16 @@ switch (option)
         }
         break;
 
+    case "--port":
+        if (!int.TryParse(param, out int portNumber))
+        {
+            Console.WriteLine("bad port number");
+            return;
+        }
+        ProcPort.DisplayPort(portNumber);
+        break;
+
+
     default:
         Helper.DisplayHelp();
         break;

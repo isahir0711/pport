@@ -27,6 +27,28 @@ namespace pport
             Console.WriteLine();
         }
 
+        public static void PrintTable(List<ProcessInfo> processInfos)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("┌─────────┬─────────┬────────────┬──────────────────────────┐");
+            Console.WriteLine("│ PORT    │ PID     │ PROTOCOL   │ PROCESS NAME             │");
+            Console.WriteLine("├─────────┼─────────┼────────────┼──────────────────────────┤");
+            Console.ResetColor();
+
+            foreach (var info in processInfos)
+            {
+                Console.Write("│ {0,-7} │ {1,-7} │ ", info.Port, info.PID);
+                Console.ForegroundColor = info.Protocol == Protocol.IPv4 ? ConsoleColor.Green : ConsoleColor.DarkBlue;
+                Console.Write("{0,-10}", info.Protocol);
+                Console.ResetColor();
+                Console.WriteLine(" │ {0,-24} │", info.ProcessName);
+            }
+
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("└─────────┴─────────┴────────────┴──────────────────────────┘");
+            Console.ResetColor();
+        }
+
         public static void CreateCSV()
         {
             List<ProcessInfo> procInfoList = [];

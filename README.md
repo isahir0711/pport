@@ -13,7 +13,7 @@
 ### Run
 
 ```bash
-curl -fsSl https://github.com/isahir0711/pport/raw/master/install.sh | bash
+curl -fsSL https://github.com/isahir0711/pport/raw/master/install.sh | bash
 ```
 
 ### Download Release

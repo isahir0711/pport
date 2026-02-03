@@ -1,10 +1,6 @@
-<div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/isahir0711/pport/raw/master/assets/images/pport-logo-white.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/isahir0711/pport/raw/master/assets/images/pport-logo-black.png">
-    <img alt="logo" src="https://github.com/isahir0711/pport/raw/master/assets/images/pport-logo-black.png" width="50%">
-  </picture>
-</div>
+<h1 align="center">
+  pport
+</h3>
 
 <h3 align="center">
   CLI Tool for port management
@@ -12,9 +8,15 @@
   Show listening ports and kill the owning processes
 </h3>
 
-## Instalation (WIP)
+## Installation
 
-### Download Release (Recommended)
+### Run
+
+```bash
+curl -fsSl https://github.com/isahir0711/pport/raw/master/install.sh | bash
+```
+
+### Download Release
 
 Download the latest release from [GitHub Releases](https://github.com/isahir0711/pport/releases):
 
@@ -54,25 +56,12 @@ pport --csv
 
 ## Supported Platforms
 
-- Linux (requires `/proc` filesystem)
+- Linux
 
-## Roadmap
+## Contributing
 
-### CLI Arguments
+If you want to: expand, change or fix anything please feel free to do it.
 
-- [x] `--watch 1s`  
-       Continuously refresh port and process information at a specified interval
-
-- [x] `--port 8080`  
-       Filter results by a specific port
-
-- [x] `--state <state>`  
-       Include ports in states other than `LISTEN` (e.g. `ESTABLISHED`)
-
-- [x] `--csv`, `--json`  
-       Export results in machine-readable formats
-
-- [x] `--kill processname`  
-       Try to kill the process
-
-- [x] IPv6 support
+1. Fork the repo
+2. Do your changes
+3. Create a PR

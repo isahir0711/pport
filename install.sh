@@ -2,7 +2,7 @@
 
 
 APP_NAME="pport"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
+INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 REPO_URL="https://github.com/isahir0711/pport"
 VERSION="${VERSION:-latest}"
 

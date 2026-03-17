@@ -63,7 +63,7 @@ detect_platform() {
 check_dependencies() {
     print_info "Checking dependencies..."
 
-    if [! command -v curl &> /dev/null]; then
+    if ! command -v curl &> /dev/null; then
         print_error "cURL not found. Please install it."
         exit 1
     fi

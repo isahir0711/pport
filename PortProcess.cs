@@ -8,8 +8,8 @@ namespace pport
         {
             List<ProcessInfo> procInfoList = [];
 
-            procInfoList.AddRange(GetPortsProcesses("/proc/net/tcp", Protocol.IPv4, state));
-            procInfoList.AddRange(GetPortsProcesses("/proc/net/tcp6", Protocol.IPv6, state));
+            procInfoList.AddRange(GetAllPortsProcesses(Protocol.IPv4, state));
+            procInfoList.AddRange(GetAllPortsProcesses(Protocol.IPv6, state));
             procInfoList = [.. procInfoList.OrderBy(x => x.Port)];
 
             if (procInfoList.Count < 1)
@@ -25,25 +25,35 @@ namespace pport
         {
             List<ProcessInfo> procInfoList = [];
 
-            procInfoList.AddRange(GetPort("/proc/net/tcp", portNumber));
+            procInfoList.AddRange(GetSinglePortProcess(portNumber));
+            procInfoList.AddRange(GetSinglePortProcess(portNumber, protocol: Protocol.IPv6));
             procInfoList = [.. procInfoList.OrderBy(x => x.Port)];
 
             if (procInfoList.Count < 1)
             {
-                Console.WriteLine("No port found");
+                Console.WriteLine("No process found using that port");
                 return;
             }
             Helper.PrintTable(procInfoList);
         }
 
-        public static List<ProcessInfo> GetPortsProcesses(string filePath, Protocol protocol, PortState state)
+        public static List<ProcessInfo> GetAllPortsProcesses(Protocol protocol, PortState state)
         {
             CreateCache();
             const int localAddressColumn = 1;
             const int inodeColumn = 9;
             const int stateColumn = 3;
+            string dir = string.Empty;
 
-            var dir = filePath;
+            if (protocol == Protocol.IPv4)
+            {
+                dir = "/proc/net/tcp";
+            }
+            else
+            {
+                dir = "/proc/net/tcp6";
+            }
+
             var lines = File.ReadAllLines(dir);
             List<ProcessInfo> result = [];
 
@@ -79,53 +89,11 @@ namespace pport
 
         }
 
-        public static List<ProcessInfo> GetPort(string filePath, int portNumber, Protocol protocol = Protocol.IPv4, PortState state = PortState.Listen)
+        public static List<ProcessInfo> GetSinglePortProcess(int portNumber, Protocol protocol = Protocol.IPv4, PortState state = PortState.Listen)
         {
             CreateCache();
-            const int localAddressColumn = 1;
-            const int inodeColumn = 9;
-            const int stateColumn = 3;
-
-            var dir = filePath;
-            var lines = File.ReadAllLines(dir);
-            List<ProcessInfo> result = [];
-
-            for (int i = 1; i < lines.Length; i++)
-            {
-                var parts = lines[i].Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                string statestring = parts[stateColumn];
-                int sHex = Convert.ToInt32(statestring, 16);
-
-                var portState = (PortState)sHex;
-
-                if (!portState.Equals(state))
-                {
-                    continue;
-                }
-                string localAddress = parts[localAddressColumn];
-                string hexPort = localAddress.Split(':')[1];
-                int port = Convert.ToInt32(hexPort, 16);
-
-                if (port != portNumber)
-                {
-                    continue;
-                }
-
-                string inodestring = parts[inodeColumn];
-                int inode = Convert.ToInt32(inodestring);
-
-                if (!cache.TryGetValue(inode, out List<InodeInfo>? hit) || hit == null)
-                {
-                    continue;
-                }
-
-                foreach (var item in hit)
-                {
-                    result.Add(new ProcessInfo(item.ProcessName, item.CommandLine, item.PID, port, protocol));
-                }
-            }
-            return result;
-
+            List<ProcessInfo> result = GetAllPortsProcesses(protocol, state);
+            return result.Where(x => x.Port == portNumber).ToList();
         }
 
         public static void CreateCache()

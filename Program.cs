@@ -31,9 +31,6 @@ if (args.Length > 2)
     return;
 }
 
-//try to parse the args
-//--port portnumbertoquery
-
 string option = args[0];
 string param = args[1];
 switch (option)
@@ -87,9 +84,8 @@ switch (option)
             try
             {
                 process.Kill();
-                return;
             }
-            catch (Win32Exception)
+            catch (UnauthorizedAccessException)
             {
                 Console.WriteLine("Not permitted");
                 return;

@@ -53,8 +53,8 @@ namespace pport
         {
             List<ProcessInfo> procInfoList = [];
             PortState state = PortState.Listen;
-            procInfoList.AddRange(ProcPort.GetPortsProcesses("/proc/net/tcp", Protocol.IPv4, state));
-            procInfoList.AddRange(ProcPort.GetPortsProcesses("/proc/net/tcp6", Protocol.IPv6, state));
+            procInfoList.AddRange(ProcPort.GetAllPortsProcesses(Protocol.IPv4, state));
+            procInfoList.AddRange(ProcPort.GetAllPortsProcesses(Protocol.IPv6, state));
 
             string outputDir = "output";
             Directory.CreateDirectory(outputDir);
@@ -90,7 +90,7 @@ namespace pport
         public static void CreateJSON()
         {
             PortState state = PortState.Listen;
-            var procInfoList = ProcPort.GetPortsProcesses("/proc/net/tcp", Protocol.IPv4, state);
+            var procInfoList = ProcPort.GetAllPortsProcesses(Protocol.IPv4, state);
 
             string outputDir = "output";
             Directory.CreateDirectory(outputDir);
